@@ -1,40 +1,48 @@
+class MockOp:
+    def __init__(self, math_func, inst=None):
+        self.math_func = math_func
+        self.inst = inst
+
+    def __get__(self, inst, cls):
+        if not inst:
+            return self
+
+        return MockOp(self.math_func, inst)
+
+    def __call__(self, other):
+        assert self.inst
+        return MockGet(self.inst, self.math_func)(other)
+
+OPS = [
+    "mul",
+    "truediv",
+    "rtruediv",
+    "floordiv",
+    "rfloordiv",
+    "pow",
+    "rpow",
+]
+
 class Mock:
     def __init__(self, name):
         self._name = name
 
-    def __mul__(self, other):
-        return MockMul(self, other)
-    __rmul__ = __mul__
-
-    def __truediv__(self, other):
-        return MockDiv(self, other)
-
-    def __rtruediv__(self, other):
-        return MockDiv(other, self)
-
-    def __floordiv__(self, other):
-        return (self / other).map(int)
-
-    def __rfloordiv__(self, other):
-        return (other / self).map(int)
-
-    def __pow__(self, power):
-        return MockPower(self, power)
-
-    def __rpow__(self, value):
-        return MockPower(value, self)
+    def __call__(self, *args, **kwargs):
+        return MockCall(self, args, kwargs)
 
     def __getattr__(self, key):
         return MockGet(self, key)
-
-    def __call__(self, *args, **kwargs):
-        return MockCall(self, args, kwargs)
 
     def map(self, func):
         return MockCall(func, [self], {})
 
     def meval(self, **values):
         return meval(self, **values)
+
+
+for op in OPS:
+    name = f"__{op}__"
+    setattr(Mock, name, MockOp(name))
 
 
 class MockValue(Mock):
@@ -47,24 +55,6 @@ class MockCall(Mock):
         self._func = func
         self._args = args
         self._kwargs = kwargs
-
-
-class MockMul(Mock):
-    def __init__(self, left, right):
-        self._left = left
-        self._right = right
-
-
-class MockDiv(Mock):
-    def __init__(self, left, right):
-        self._left = left
-        self._right = right
-
-
-class MockPower(Mock):
-    def __init__(self, value, power):
-        self._value = value
-        self._power = power
 
 
 class MockGet(Mock):
@@ -96,12 +86,6 @@ def meval(mock, **values):
         return values.get(mock._name, mock)
     if t is MockValue:
         return meval(mock._value, **values)
-    if t is MockMul:
-        return meval(mock._left, **values) * meval(mock._right, **values)
-    if t is MockDiv:
-        return meval(mock._left, **values) / meval(mock._right, **values)
-    if t is MockPower:
-        return meval(mock._value, **values) ** meval(mock._power, **values)
     if t is MockGet:
         return getattr(meval(mock._value, **values), mock._key)
     if t is MockCall:
