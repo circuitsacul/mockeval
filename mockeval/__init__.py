@@ -13,6 +13,7 @@ class MockOp:
         assert self.inst
         return MockGet(self.inst, self.math_func)(other)
 
+
 OPS = [
     "mul",
     "truediv",
@@ -22,6 +23,7 @@ OPS = [
     "pow",
     "rpow",
 ]
+
 
 class Mock:
     def __init__(self, name):
