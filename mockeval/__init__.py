@@ -12,6 +12,12 @@ class Mock:
     def __rtruediv__(self, other):
         return MockDiv(other, self)
 
+    def __floordiv__(self, other):
+        return (self / other).map(int)
+
+    def __rfloordiv__(self, other):
+        return (other / self).map(int)
+
     def __pow__(self, power):
         return MockPower(self, power)
 
