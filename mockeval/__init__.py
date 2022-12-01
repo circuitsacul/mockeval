@@ -1,3 +1,6 @@
+__all__ = ("var", "val")
+
+
 class MockOp:
     def __init__(self, math_func, inst=None):
         self.math_func = math_func
@@ -22,6 +25,8 @@ OPS = [
     "rfloordiv",
     "pow",
     "rpow",
+    "add",
+    "radd",
 ]
 
 
@@ -36,10 +41,10 @@ class Mock:
         return MockGet(self, key)
 
     def map(self, func):
-        return MockCall(func, [self], {}, None)
+        return MockCall(func, [self], {})
 
-    def meval(self, **values):
-        return meval(self, **values)
+    def evl(self, **values):
+        return evl(self, **values)
 
 
 for op in OPS:
@@ -52,8 +57,11 @@ class MockValue(Mock):
         self._value = value
 
 
+val = MockValue
+
+
 class MockCall(Mock):
-    def __init__(self, func, args, kwargs, known_values):
+    def __init__(self, func, args, kwargs, known_values=None):
         self._func = func
         self._args = args
         self._kwargs = kwargs
@@ -71,24 +79,24 @@ class MockGetter:
         return Mock(name)
 
 
-_ = MockGetter()
+var = MockGetter()
 
 
 class MissingValue(Exception):
     pass
 
 
-def meval(mock, allow_missing=True, /, **values):
+def evl(mock, allow_missing=True, /, **values):
     if not isinstance(mock, Mock):
         if isinstance(mock, dict):
             return {
-                meval(k, allow_missing, **values): meval(v, allow_missing, **values)
+                evl(k, allow_missing, **values): evl(v, allow_missing, **values)
                 for k, v in mock.items()
             }
         if isinstance(mock, list):
-            return [meval(arg, allow_missing, **values) for arg in mock]
+            return [evl(arg, allow_missing, **values) for arg in mock]
         if isinstance(mock, tuple):
-            return tuple([meval(arg, allow_missing, **values) for arg in mock])
+            return tuple([evl(arg, allow_missing, **values) for arg in mock])
         return mock
 
     t = type(mock)
@@ -97,20 +105,20 @@ def meval(mock, allow_missing=True, /, **values):
             raise MissingValue
         return values.get(mock._name, mock)
     if t is MockValue:
-        return meval(mock._value, allow_missing, **values)
+        return evl(mock._value, allow_missing, **values)
     if t is MockGet:
-        return getattr(meval(mock._value, allow_missing, **values), mock._key)
+        return getattr(evl(mock._value, allow_missing, **values), mock._key)
     if t is MockCall:
         values = values.copy()
         values.update(mock._known_values)
         try:
-            args = [meval(arg, False, **values) for arg in mock._args]
+            args = [evl(arg, False, **values) for arg in mock._args]
             kwargs = {
-                meval(k, False, **values): meval(v, False, **values)
+                evl(k, False, **values): evl(v, False, **values)
                 for k, v in mock._kwargs.items()
             }
         except MissingValue:
             mock._known_values = values
             return mock
-        func = meval(mock._func, allow_missing, **values)
+        func = evl(mock._func, allow_missing, **values)
         return func(*args, **kwargs)
