@@ -33,6 +33,9 @@ class Mock:
     def map(self, func):
         return MockCall(func, [self], {})
 
+    def meval(self, **values):
+        return meval(self, **values)
+
 
 class MockValue(Mock):
     def __init__(self, value):
