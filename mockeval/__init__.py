@@ -12,9 +12,9 @@ class MockOp:
 
         return MockOp(self.math_func, inst)
 
-    def __call__(self, other):
+    def __call__(self, *args, **kwargs):
         assert self.inst
-        return MockGet(self.inst, self.math_func)(other)
+        return MockGet(self.inst, self.math_func)(*args, **kwargs)
 
 
 OPS = [
@@ -27,6 +27,7 @@ OPS = [
     "rpow",
     "add",
     "radd",
+    "getitem",
 ]
 
 
@@ -39,6 +40,20 @@ class Mock:
 
     def __getattr__(self, key):
         return MockGet(self, key)
+
+    def setattr(self, key, val):
+        def _setattr(inst, key, val):
+            setattr(inst, key, val)
+            return inst
+
+        return MockCall(_setattr, [self, key, val], {})
+
+    def setitem(self, key, val):
+        def _setitem(inst, key, val):
+            inst[key] = val
+            return inst
+
+        return MockCall(_setitem, [self, key, val], {})
 
     def map(self, func):
         return MockCall(func, [self], {})
