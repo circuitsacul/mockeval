@@ -9,10 +9,19 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.8"
 
-
 [tool.poetry.group.dev.dependencies]
 black = "^22.10.0"
+ruff = "^0.0.153"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length=79
+
+[tool.ruff]
+extend-select=[
+    # isort
+    "I001"
+]

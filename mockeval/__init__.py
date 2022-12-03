@@ -105,7 +105,9 @@ def evl(mock, allow_missing=True, /, **values):
     if not isinstance(mock, Mock):
         if isinstance(mock, dict):
             return {
-                evl(k, allow_missing, **values): evl(v, allow_missing, **values)
+                evl(k, allow_missing, **values): evl(
+                    v, allow_missing, **values
+                )
                 for k, v in mock.items()
             }
         if isinstance(mock, list):
