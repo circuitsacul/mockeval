@@ -10,9 +10,9 @@ readme = "README.md"
 python = "^3.8"
 
 [tool.poetry.group.dev.dependencies]
-black = "^22.10.0"
-ruff = "^0.0.153"
-nox = "^2022.11.21"
+black = "^23.3.0"
+ruff = "^0.0.272"
+nox = "^2023.4.22"
 
 [build-system]
 requires = ["poetry-core"]
