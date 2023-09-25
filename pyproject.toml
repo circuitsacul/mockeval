@@ -11,7 +11,7 @@ python = "^3.8"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
-ruff = ">=0.0.272,<0.0.287"
+ruff = ">=0.0.272,<0.0.292"
 nox = "^2023.4.22"
 
 [build-system]
